@@ -1,5 +1,5 @@
 {
-  "name": "phayes/elasticentityquery",
+  "name": "highwire/elasticentityqueries",
   "description": "Implements EntityQuery using an elasticsearch backend",
   "type": "drupal-module",
   "homepage": "https://www.drupal.org/project/examples",
@@ -11,16 +11,16 @@
     }
   ],
   "require": {
-    "elasticsearch/elasticsearch": "^5.0"
+    "elasticsearch/elasticsearch": "^7"
   },
   "authors": [
     {
-      "name": "Patrick Hayes",
-      "homepage": "https://github.com/phayes"
+      "name": "Highwire",
+      "homepage": "https://github.com/highwire"
     }
   ],
   "require-dev": {
-    "drupal/core": "^8.3",
+    "drupal/core": "^9.5.0",
     "phpunit/phpunit" : ">=4.8.28 <5"
   }
 }
