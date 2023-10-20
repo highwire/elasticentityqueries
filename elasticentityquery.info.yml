@@ -1,4 +1,4 @@
-name: Elastic EntityQuery
+name: Elastic EntityQueryv
 description: Uses elasticsearch to perform EntityQuery
 package: elasticsearch
 type: module

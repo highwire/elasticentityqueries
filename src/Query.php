@@ -2,14 +2,13 @@
 
 namespace Drupal\elasticentityquery;
 
-use Drupal\Core\Entity\Query\Sql\Condition;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Entity\Query\QueryBase;
 use Drupal\Core\Entity\Query\QueryInterface;
 use Elasticsearch\Client;
 
 /**
- * The elasticsearch entity query class.
+ * The SQL storage entity query class.
  */
 class Query extends QueryBase implements QueryInterface {
 
@@ -65,9 +64,10 @@ class Query extends QueryBase implements QueryInterface {
    * @param array $namespaces
    *   List of potential namespaces of the classes belonging to this query.
    */
-  public function __construct(EntityTypeInterface $entity_type, $conjunction = 'AND', Client $client, array $namespaces) {
+  public function __construct(EntityTypeInterface $entity_type, ?string $conjunction, Client $client, array $namespaces) {
+    $conjunction = empty($conjunction) ? 'AND' : $conjunction; 
     parent::__construct($entity_type, $conjunction, $namespaces);
-    $this->client = $client;
+    $this->client = $client;    
   }
 
   /**
@@ -102,6 +102,7 @@ class Query extends QueryBase implements QueryInterface {
       $result = $this->client->count($params);
     }
     else {
+      $params['type'] = '';
       $result = $this->client->search($params);
     }
 
@@ -118,18 +119,6 @@ class Query extends QueryBase implements QueryInterface {
     return $this->entityTypeId;
   }
 
-  /**
-   * Translate the field name from the local name to the elasticname
-   *
-   * 
-   * By default this does nothing, but can be overridden by child classes.
-   * 
-   * @param string $field
-   *  The field name.
-   * 
-   * @return string
-   *   The translated field name.
-   */
   public function translateField($field) {
     return $field;
   }
@@ -165,7 +154,7 @@ class Query extends QueryBase implements QueryInterface {
     // Sorting
     if (!empty($this->sort)) {
       foreach ($this->sort as $sort) {
-        $params['body']['sort'] = [$this->translateField($sort['field']) => ['order' => strtolower($sort['direction'])]];
+        $params['body']['sort'] = [$sort['field'] => ['order' => strtolower($sort['direction'])]];
       }
     }
 
@@ -193,18 +182,12 @@ class Query extends QueryBase implements QueryInterface {
     return $params;
   }
 
-  private function getElasticFilterItem(Condition $condition) {
+  private function getElasticFilterItem(\Drupal\Core\Entity\Query\Sql\Condition $condition) {
     $conjunction = strtoupper($condition->getConjunction());
     $bool = [];
     foreach ($condition->conditions() as $subcondition) {
       $operator = $subcondition['operator'] ?? '=';
-
-      if (is_string($subcondition['field'])) {
-        $field = $this->translateField($subcondition['field']);
-      }
-      else {
-        $field = $subcondition['field'];
-      }
+      $field = $this->translateField($subcondition['field']);
       $value = $subcondition['value'];
 
       if (is_object($field) && $conjunction == "AND") {
@@ -363,7 +346,7 @@ class Query extends QueryBase implements QueryInterface {
     $conditions = &$this->condition->conditions();
     foreach ($this->condition->conditions() as $i => $subcondition) {
       if ($subcondition['field'] == $field) {
-        unset($conditions[$i]);
+        unset ($conditions[$i]);
       }
     }
   }
